@@ -1,6 +1,1 @@
-{
-    "version": 1,
-    "routes": [
-        {"src":"/(.*)", "dest": "app.py"}
-    ]
-}
+

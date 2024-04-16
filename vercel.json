@@ -1,9 +1,0 @@
-{
-    "version": 0.1,
-    "build": {
-        "use": "@vercel/python"
-    },
-    "routes": [
-        {"src":"/(.*)", "dest": "app.py"}
-    ]
-}

@@ -4,6 +4,8 @@
 <head>
   <title>Propulse</title>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0" />
   <style>
     body {
       margin: 0;
@@ -19,8 +21,8 @@
 
     #datas {
       position: absolute;
-      top: 150px;
-      z-index: 9999;
+      top: 225px;
+      z-index: 49;
     }
 
     table {
@@ -176,6 +178,7 @@
       position: fixed;
       bottom: 0;
       width: 100vw;
+      z-index: 51
     }
 
     .scroller {
@@ -399,15 +402,18 @@
       background-color: lightgray;
       padding: 8px;
     }
+
+    .material-symbols-outlined {
+      color: black;
+      font-size: 22px;
+      padding-bottom: 8px;
+    }
   </style>
 </head>
 
 <body>
   <div class="container">
     <div class="title-bar">Tableur Propulse</div>
-    <a href="{{ url_for('download_excel') }}" download="tableur.xlsx">
-      <button>Download Excel File</button>
-    </a>
     <div class="menu-bar">
       <div class="menu-file menu-item">File</div>
       <div class="menu-home menu-item selected">Home</div>
@@ -460,6 +466,16 @@
         <input class="color-picker text-color-picker" type="color" />
         <div class="material-icons color-fill-text">format_color_text</div>
       </div>
+      <a href="{{ url_for('download_excel') }}" download="tableur.xlsx" id="download-sheet">
+        <span class="menu-icon icon-align-right align-icon material-symbols-outlined">
+          download_for_offline
+        </span>
+      </a>
+      <!-- <div>
+        <div class="material-symbols-outlined">
+          download
+        </div>
+      </div> -->
 
       <div id="datas">
         {{ data|safe }}
@@ -486,13 +502,13 @@
       <div class="select-all"></div>
 
       <!-- <div class="cell-row">
-                <div class="input-cell" contenteditable="true" id = "row-1-col-1" data="code-A"></div>
-                <div class="input-cell" contenteditable="true"></div>
-            </div>
-            <div class="cell-row">
-                <div class="input-cell" contenteditable="true"></div>
-                <div class="input-cell" contenteditable="true"></div>
-            </div> -->
+        <div class="input-cell" contenteditable="true" id = "row-1-col-1" data="code-A"></div>
+        <div class="input-cell" contenteditable="true"></div>
+      </div>
+      <div class="cell-row">
+        <div class="input-cell" contenteditable="true"></div>
+        <div class="input-cell" contenteditable="true"></div>
+      </div> -->
 
     </div>
     <div class="sheet-bar">
@@ -502,25 +518,61 @@
       </div>
       <div class="material-icons icon-add">add_circle</div>
       <div class="sheet-tab-container">
-        <div class="sheet-tab selected">Sheet1</div>
+        <div class="sheet-tab selected" id="Data">Data</div>
+        <div class="sheet-tab" id="Null-Email">Null Email</div>
       </div>
       <!-- <div class="sheet-options-modal">
         <div class="sheet-rename">Rename</div>
         <div class="sheet-delete">Delete</div>
-    </div> -->
+      </div> -->
 
       <!-- <div class="sheet-rename-modal">
         <h4 class="modal-title">Rename Sheet To:</h4>
         <input type="text" class="new-sheet-name" placeholder="Sheet Name" />
         <div class="action-buttons">
-            <div class="submit-button">Rename</div>
-            <div class="cancel-button">Cancel</div>
+          <div class="submit-button">Rename</div>
+          <div class="cancel-button">Cancel</div>
         </div>
-    </div> -->
+      </div> -->
     </div>
   </div>
 </body>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script src="script/script.js"></script>
+<script>
+  let Data = document.getElementById('Data');
+  let NullEmail = document.getElementById('Null-Email');
+
+  const dataSafe = `{{ data|safe }}`;
+  const emailSafe = `{{ df_email_data|safe }}`
+
+  const changeSheetPage = (sheetId) => {
+    if (sheetId.classList.contains('selected')) return '';
+    else {
+      document.querySelectorAll('.selected').forEach(element => {
+        element.classList.remove('selected');
+      });
+      sheetId.classList.add('selected');
+
+      // Get the data container
+      let dataContainer = document.getElementById('datas');
+      // Clear previous data
+      dataContainer.innerHTML = '';
+
+      // Display data based on selected sheet
+      if (sheetId.id === 'Data') {
+        // Display data|safe
+        dataContainer.innerHTML = dataSafe;
+      } else if (sheetId.id === 'Null-Email') {
+        // Display df_email_data
+        dataContainer.innerHTML = emailSafe;
+      }
+    }
+  };
+
+  // Attach click event listeners to sheet tabs
+  Data.addEventListener('click', () => changeSheetPage(Data));
+  NullEmail.addEventListener('click', () => changeSheetPage(NullEmail));
+
+</script>
 
 </html>

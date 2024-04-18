@@ -9,8 +9,8 @@ import gender_guesser.detector as gender_detector
 from flask import Flask, render_template, request, jsonify, send_file
 import pandas as pd
 
-nltk.download('punkt')
-nltk.download('averaged_perceptron_tagger')
+# nltk.download('punkt')
+# nltk.download('averaged_perceptron_tagger')
 app = Flask(__name__)
 
 @app.route('/')
@@ -121,24 +121,19 @@ def process_csv():
                 df.at[index, 'Suggestion de Prénom'] = row['lastName']
             
             if isinstance(row['Société'], str):
-                prefixe, pronom = determiner_prefixe_pronom(row['Société'])
-                df.at[index, 'Société'] = f"{prefixe} {row['Société']}"
+                prefix, pronoun = determiner_prefixe_pronom(row['Société'])
+                df.at[index, 'Société'] = f"{prefix} {row['Société']}"
             
-            # Analyse du prénom et ajout de la civilité appropriée
             if pd.isnull(row['firstName']):
                 df.at[index, 'Civilité'] = "Prénom non attribué"
             elif pd.isnull(row['Civilité']):
-                # Diviser le prénom en une liste de prénoms
                 first_names = row['firstName'].split()
-                # Prendre le premier prénom de la liste
                 first_name = first_names[0]
                 gender = detect_gender(first_name)
-                # Si le genre est androgyne, inconnu ou s'il y a une erreur, analyser le deuxième prénom
                 if gender in ["andy", "unknown", "error"]:
                     if len(first_names) > 1:
                         second_name = first_names[1]
                         gender = detect_gender(second_name)
-                # Attribuer la civilité appropriée
                 if gender == "female" or gender == "mostly_female":
                     df.at[index, 'Civilité'] = "Madame"
                 elif gender == "male" or gender=="mostly_male":
@@ -150,7 +145,6 @@ def process_csv():
                 else:
                     df.at[index, 'Civilité'] = "Erreur"
             
-            # Si l'email est nul, attribuer également la civilité pour la feuille Null_Email
             if pd.isnull(row['Email']):
                 if pd.isnull(row['firstName']):
                     df_null_email.at[index, 'Civilité'] = "Prénom non attribué"
@@ -162,7 +156,6 @@ def process_csv():
                         if len(first_names) > 1:
                             second_name = first_names[1]
                             gender = detect_gender(second_name)
-                    # Attribuer la civilité appropriée
                     if gender == "female" or gender == "mostly_female":
                         df_null_email.at[index, 'Civilité'] = "Madame"
                     elif gender == "male" or gender=="mostly_male":
@@ -177,19 +170,39 @@ def process_csv():
                     else:
                         df_null_email.at[index, 'Civilité'] = "Erreur"
             
+            # Check if any part of the last name matches the company name
+            if isinstance(row['lastName'], str) and isinstance(row['Société'], str):
+                last_name_parts = row['lastName'].split()
+                for part in last_name_parts:
+                    if part.lower() in row['Société'].lower():
+                        df.at[index, 'Match Entreprise'] = 'Oui'
+                        break
+                else:
+                    df.at[index, 'Match Entreprise'] = 'Non'
+            
             pbar_load.update(1)
 
-    df_combined = pd.concat([df, df_null_email], ignore_index=True)
+    # df_combined = pd.concat([df, df_null_email], ignore_index=True)
 
-    df_combined = df_combined.dropna(subset=['Email'])
+    # df_combined = df_combined.dropna(subset=['Email'])
 
         
     print(df)
 
     output_file = 'tableur.xlsx'
-    df_combined.to_excel(output_file, index=False)
+    # df_combined.to_excel(output_file, index=False)
 
-    return render_template('result.html', data=df.to_html())
+
+    # To try
+    with pd.ExcelWriter('tableur.xlsx') as writer:
+        # Write original DataFrame to the first sheet
+        df.to_excel(writer, sheet_name='Data', index=False)
+
+        # Write DataFrame with null email to the second sheet
+        if not df_null_email.empty:
+            df_null_email.to_excel(writer, sheet_name='Null-Email', index=False)
+
+    return render_template('result.html', data=df.to_html(), df_email_data=df_null_email.to_html())
 
 
 @app.route('/download_excel')
@@ -198,4 +211,4 @@ def download_excel():
     return send_file(excel_file_path, as_attachment=True)
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)

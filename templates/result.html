@@ -466,7 +466,7 @@
         <input class="color-picker text-color-picker" type="color" />
         <div class="material-icons color-fill-text">format_color_text</div>
       </div>
-      <a href="{{ url_for('download_excel') }}" download="tableur.xlsx" id="download-sheet">
+      <a href="{{ url_for('download_excel', filename=filename) }}" download={{filename}} id="download-sheet">
         <span class="menu-icon icon-align-right align-icon material-symbols-outlined">
           download_for_offline
         </span>
